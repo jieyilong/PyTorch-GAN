@@ -21,6 +21,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
+import wandb
+wandb_project = 'cyclegan-test-1'
+wandb_run_name = 'cyclegan-test-1' # 'run' + str(time.time())
+wandb.login(key="") # TODO: Add your key here, copy from https://wandb.ai/authorize
+wandb.init(project=wandb_project, name=wandb_run_name, config=None)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
@@ -266,6 +272,17 @@ for epoch in range(opt.epoch, opt.n_epochs):
                 time_left,
             )
         )
+
+        wandb.log({
+                "epoch": epoch,
+                "batch": i,
+                "D/loss": loss_D.item(),
+                "G/loss": loss_G.item(),
+                "G/adv" : loss_GAN.item(),
+                "G/cycle": loss_cycle.item(),
+                "G/identity": loss_identity.item(),
+                "ETA": time_left.total_seconds(),
+        })
 
         # If at sample interval save image
         if batches_done % opt.sample_interval == 0:
